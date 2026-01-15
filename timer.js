@@ -37,7 +37,7 @@ class ExamTimer {
     this.currentBackground = 1;
     this.totalBackgrounds = 2;
     this.soundEnabled = false;
-    this.alarmSound = new Audio('sound.wav');
+    this.alarmSound = new Audio('https://app.aaronshi.cc/exam-timer/sound.wav');
     this.zoomLevel = 1;
     this.timerIsSet = false;
     this.examInProgress = false;
