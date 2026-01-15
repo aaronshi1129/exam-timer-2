@@ -1,0 +1,72 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Exam Timer by Aaron Shi</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="https://alittlemoreenglish.weebly.com/uploads/2/6/6/3/26638990/favicon-32x32_orig.png">
+</head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z6V4ZXXZXS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Z6V4ZXXZXS');
+</script>
+<body>
+  <div class="theme-switcher">
+    <button id="backgroundToggle">Switch Background</button>
+    <button id="soundToggle">Sound Effect: Off</button>
+    <div class="zoom-controls">
+      <button id="zoomIn">Zoom In</button>
+      <button id="zoomOut">Zoom Out</button>
+    </div>
+  </div>
+  
+  <div class="exam-timer-container">
+    <div class="left-section">
+      <div class="digital-info">
+        <div id="digitalClock" class="digital-clock">00:00:00</div>
+        <div id="digitalDate" class="digital-date">Date</div>
+      </div>
+    </div>
+    
+    <div class="right-section">
+      <div class="countdown-timer">
+        <div id="countdownDisplay" class="countdown-display">00:00:00</div>
+        
+        <div class="mode-selector">
+            <label><input type="radio" name="timerMode" value="countdown" checked> Countdown Mode</label>
+            <label><input type="radio" name="timerMode" value="scheduled"> Scheduled Mode</label>
+        </div>
+
+        <div class="countdown-controls">
+          <div id="countdownInputs" class="input-group-row">
+            <input type="number" id="examHours" placeholder="Hours" min="0" step="1">
+            <input type="number" id="examMinutesInput" placeholder="Minutes" min="0" max="59" step="1">
+          </div>
+          
+          <div id="scheduledInputs" class="input-group-row hidden">
+             <input type="time" id="examEndTimeInput" placeholder="End Time">
+          </div>
+
+          <button id="setTimerBtn">Set Timer</button>
+        </div>
+      </div>
+      
+      <div class="proctor-inputs">
+        <input type="text" id="examNameInput" placeholder="Exam Name">
+        <input type="text" id="examInfoInput" placeholder="Exam Info">
+        <div class="exam-controls">
+          <button id="startBtn">Start Exam</button>
+          <button id="stopBtn">Stop Exam</button>
+          <button id="resetBtn">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="author-info"><a href="https://www.aaronshi.cc" target="_blank" rel="noopener noreferrer">Created by Aaron Shi. v3.250421<img src="https://alittlemoreenglish.weebly.com/uploads/2/6/6/3/26638990/favicon-32x32_orig.png" alt="Aaron Shi" width="15" height="15"></a></div>
+  <script type="module" src="timer.js"></script>
+</body>
+</html>
