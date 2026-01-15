@@ -1,361 +1,417 @@
 class ExamTimer {
   constructor() {
-    this.digitalClock = document.getElementById('digitalClock');
-    this.digitalDate = document.getElementById('digitalDate');
-    this.countdownDisplay = document.getElementById('countdownDisplay');
-    
-    // Inputs
-    this.examHoursInput = document.getElementById('examHours');
-    this.examMinutesInput = document.getElementById('examMinutesInput');
-    this.examEndTimeInput = document.getElementById('examEndTimeInput');
-    this.examNameInput = document.getElementById('examNameInput');
-    this.examInfoInput = document.getElementById('examInfoInput');
-    
-    // Containers
-    this.countdownInputs = document.getElementById('countdownInputs');
-    this.scheduledInputs = document.getElementById('scheduledInputs');
-    
-    // Mode Radios
-    this.modeRadios = document.getElementsByName('timerMode');
-
-    // Buttons
-    this.setTimerBtn = document.getElementById('setTimerBtn');
-    this.startBtn = document.getElementById('startBtn');
-    this.stopBtn = document.getElementById('stopBtn');
-    this.resetBtn = document.getElementById('resetBtn');
-    this.backgroundToggleBtn = document.getElementById('backgroundToggle');
-    this.soundToggleBtn = document.getElementById('soundToggle');
-    this.zoomInBtn = document.getElementById('zoomIn');
-    this.zoomOutBtn = document.getElementById('zoomOut');
-
-    this.examTimerContainer = document.querySelector('.exam-timer-container');
-    this.rightSection = document.querySelector('.right-section');
-
-    // Logic Vars
-    this.targetTime = null; // The exact Date timestamp when exam ends
-    this.countdownInterval = null;
-    this.currentBackground = 1;
-    this.totalBackgrounds = 2;
-    this.soundEnabled = false;
-    this.alarmSound = new Audio('https://app.aaronshi.cc/exam-timer/sound.wav');
-    this.zoomLevel = 1;
-    this.timerIsSet = false;
-    this.examInProgress = false;
-    this.currentMode = 'countdown'; // 'countdown' or 'scheduled'
-
-    // Initial States
-    this.stopBtn.classList.add('hidden');
-    this.resetBtn.disabled = true;
-    this.startBtn.disabled = true;
-
-    this.initializeEventListeners();
-    this.updateDigitalClock();
-    setInterval(() => this.updateDigitalClock(), 1000);
-    this.setupInputValidation();
-  }
-
-  initializeEventListeners() {
-    this.setTimerBtn.addEventListener('click', () => this.setExamDuration());
-    
-    this.startBtn.addEventListener('click', () => {
-      if (!this.timerIsSet) {
-        alert('Please set the timer before starting.');
-        return;
-      }
-      this.startExam();
-    });
-    
-    this.stopBtn.addEventListener('click', () => this.stopExam());
-    this.resetBtn.addEventListener('click', () => this.resetExam());
-    this.backgroundToggleBtn.addEventListener('click', () => this.toggleBackground());
-    this.soundToggleBtn.addEventListener('click', () => this.toggleSound());
-    this.zoomInBtn.addEventListener('click', () => this.zoomIn());
-    this.zoomOutBtn.addEventListener('click', () => this.zoomOut());
-
-    // Mode switching listeners
-    this.modeRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => this.switchMode(e.target.value));
-    });
-  }
-
-  setupInputValidation() {
-    const validateInteger = (input) => {
-      input.addEventListener('input', (e) => {
-        const value = e.target.value;
-        if (value && !Number.isInteger(parseFloat(value))) {
-          e.target.value = Math.floor(parseFloat(value)) || '';
-        }
-      });
+    // DOM Elements
+    this.els = {
+      clock: document.getElementById('digitalClock'),
+      date: document.getElementById('digitalDate'),
+      status: document.getElementById('statusDisplay'),
+      countdown: document.getElementById('countdownDisplay'),
+      infoCard: document.getElementById('activeExamInfo'),
+      infoName: document.getElementById('activeNameDisplay'),
+      infoNote: document.getElementById('activeInfoDisplay'),
+      // Tabs
+      tabs: document.querySelectorAll('.tab-btn'),
+      panels: {
+        manual: document.getElementById('manualPanel'),
+        schedule: document.getElementById('schedulePanel')
+      },
+      // Manual Inputs
+      mHours: document.getElementById('manualHours'),
+      mMins: document.getElementById('manualMinutes'),
+      mName: document.getElementById('manualExamName'),
+      mInfo: document.getElementById('manualExamInfo'),
+      mStart: document.getElementById('manualStartBtn'),
+      mStop: document.getElementById('manualStopBtn'),
+      mReset: document.getElementById('manualResetBtn'),
+      // Schedule Inputs
+      sStart: document.getElementById('newExamStart'),
+      sEnd: document.getElementById('newExamEnd'),
+      sName: document.getElementById('newExamName'),
+      sAdd: document.getElementById('addExamBtn'),
+      sTable: document.querySelector('#scheduleTable tbody'),
+      sClear: document.getElementById('clearScheduleBtn'),
+      sExport: document.getElementById('exportCsvBtn'),
+      sImport: document.getElementById('importCsvInput'),
+      // Global
+      bgToggle: document.getElementById('backgroundToggle'),
+      soundToggle: document.getElementById('soundToggle'),
+      zoomIn: document.getElementById('zoomIn'),
+      zoomOut: document.getElementById('zoomOut'),
+      container: document.querySelector('.exam-timer-container')
     };
-    validateInteger(this.examHoursInput);
-    validateInteger(this.examMinutesInput);
+
+    // State
+    this.state = {
+      mode: 'manual', // 'manual' | 'schedule'
+      schedule: [],
+      currentExam: null,
+      manualTarget: null,
+      soundEnabled: false,
+      audioUnlocked: false, // Track if browser allowed audio
+      bgIndex: 1,
+      zoom: 1
+    };
+
+    // Audio Object
+    this.alarmSound = new Audio('app.aaronshi.cc/exam-timer/sound.wav');
+
+    this.init();
   }
 
-  switchMode(mode) {
-      this.currentMode = mode;
-      this.resetExam(); // Reset everything when mode changes
-
-      if (mode === 'countdown') {
-          this.countdownInputs.classList.remove('hidden');
-          this.scheduledInputs.classList.add('hidden');
-      } else {
-          this.countdownInputs.classList.add('hidden');
-          this.scheduledInputs.classList.remove('hidden');
-      }
-  }
-
-  zoomIn() {
-    if (this.zoomLevel < 1.5) {
-      this.zoomLevel += 0.1;
-      this.updateZoom();
-    }
-  }
-
-  zoomOut() {
-    if (this.zoomLevel > 0.7) {
-      this.zoomLevel -= 0.1;
-      this.updateZoom();
-    }
-  }
-
-  updateZoom() {
-    this.examTimerContainer.style.transform = `scale(${this.zoomLevel})`;
-  }
-
-toggleBackground() {
-    // 1. 先移除當前的背景 class (如果不是第1張的話)
-    if (this.currentBackground > 1) {
-      document.body.classList.remove(`background-${this.currentBackground}`);
-    }
-
-    // 2. 計算下一張的號碼
-    this.currentBackground++;
-
-    // 3. 如果超過總張數，就回到第 1 張
-    if (this.currentBackground > this.totalBackgrounds) {
-      this.currentBackground = 1;
-    }
-
-    // 4. 如果新號碼不是第 1 張，就加上對應的 class
-    // (因為第 1 張是預設 body 樣式，不需要加 class)
-    if (this.currentBackground > 1) {
-      document.body.classList.add(`background-${this.currentBackground}`);
-    }
+  init() {
+    this.loadSchedule();
+    this.updateClock();
     
-    console.log(`Switched to background ${this.currentBackground}`);
+    // Tickers
+    setInterval(() => this.updateClock(), 1000);
+    setInterval(() => this.tick(), 500);
+
+    // Event Bindings
+    this.bindEvents();
+    
+    // Initial Render
+    this.renderSchedule();
+    
+    // IMPORTANT: Try to unlock audio on first interaction
+    document.body.addEventListener('click', () => this.unlockAudioContext(), { once: true });
+    document.body.addEventListener('touchstart', () => this.unlockAudioContext(), { once: true });
   }
 
-  toggleSound() {
-    this.soundEnabled = !this.soundEnabled;
-    this.soundToggleBtn.textContent = this.soundEnabled ? 'Sound Effect: On' : 'Sound Effect: Off';
-    this.soundToggleBtn.classList.toggle('active', this.soundEnabled);
-  }
-
-  updateDigitalClock() {
-    const now = new Date();
-    this.digitalClock.textContent = now.toLocaleTimeString('en-US', { hour12: false });
-    this.digitalDate.textContent = now.toLocaleDateString(undefined, {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  // --- Audio Fix ---
+  unlockAudioContext() {
+    if (this.state.audioUnlocked) return;
+    
+    // Play silence to unlock the audio engine on iOS/Chrome
+    this.alarmSound.play().then(() => {
+        this.alarmSound.pause();
+        this.alarmSound.currentTime = 0;
+        this.state.audioUnlocked = true;
+        console.log("Audio Context Unlocked");
+    }).catch(error => {
+        console.log("Audio unlock failed (waiting for interaction):", error);
     });
   }
 
-  setExamDuration() {
-    let durationMs = 0;
-    const now = new Date();
-
-    if (this.currentMode === 'countdown') {
-        const hours = parseInt(this.examHoursInput.value) || 0;
-        const minutes = parseInt(this.examMinutesInput.value) || 0;
-
-        if (hours === 0 && minutes === 0) {
-            alert('Please enter a valid duration.');
-            return;
-        }
-        durationMs = (hours * 3600 + minutes * 60) * 1000;
-        this.targetTime = new Date(now.getTime() + durationMs);
-
-    } else if (this.currentMode === 'scheduled') {
-        const timeValue = this.examEndTimeInput.value; // Format "HH:MM"
-        if (!timeValue) {
-            alert('Please select an end time.');
-            return;
-        }
-
-        const [hours, minutes] = timeValue.split(':').map(Number);
-        
-        // Create date object for today with input time
-        const scheduledTime = new Date();
-        scheduledTime.setHours(hours, minutes, 0, 0);
-
-        // If the scheduled time has already passed for today, assume they mean tomorrow? 
-        // Or simpler: just warn. Let's start with warning or accepting it (could be negative).
-        if (scheduledTime <= now) {
-           // Allow setting for short past times? Or maybe next day?
-           // Usually for exams, if time passed, it's invalid.
-           // However, let's just use it. If negative, display 00:00:00.
-        }
-        
-        this.targetTime = scheduledTime;
-        durationMs = this.targetTime - now;
-        
-        if (durationMs <= 0) {
-            alert('The selected time is in the past.');
-            return;
-        }
+  triggerAlarm(msg) {
+    console.log("Alarm Triggered:", msg);
+    if (this.state.soundEnabled) {
+        // Try playing even if not "unlocked" flag (sometimes it works)
+        this.alarmSound.currentTime = 0;
+        this.alarmSound.play().catch(e => console.error("Play failed:", e));
     }
-    
-    // Update Display immediately
-    this.updateCountdownDisplay(durationMs);
-    
-    // Set timer state to ready
-    this.timerIsSet = true;
-    
-    // UI Updates
-    this.startBtn.disabled = false;
-    this.resetBtn.disabled = false;
-    this.stopBtn.classList.add('hidden');
-    
-    this.examHoursInput.disabled = true;
-    this.examMinutesInput.disabled = true;
-    this.examEndTimeInput.disabled = true;
-    this.setTimerBtn.disabled = true;
-    
-    // Disable mode switching while set
-    this.modeRadios.forEach(r => r.disabled = true);
   }
 
-  startExam() {
-    this.examInProgress = true;
-    this.rightSection.classList.add('exam-started');
+  bindEvents() {
+    // Tab Switching
+    this.els.tabs.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        this.switchMode(e.target.dataset.tab);
+      });
+    });
 
-    // Create exam info
-    const existingInfo = this.rightSection.querySelector('.exam-info');
-    if(!existingInfo) {
-        const examInfoDiv = document.createElement('div');
-        examInfoDiv.classList.add('exam-info');
-        examInfoDiv.innerHTML = `
-        <div> ${this.examNameInput.value || ' '}</div>
-        <div> ${this.examInfoInput.value || ' '}</div>
-        `;
-        this.rightSection.insertBefore(examInfoDiv, this.rightSection.firstChild);
-    }
+    // Manual Controls
+    this.els.mStart.addEventListener('click', () => this.startManual());
+    this.els.mStop.addEventListener('click', () => this.stopManual());
+    this.els.mReset.addEventListener('click', () => this.resetManual());
 
-    this.startBtn.classList.add('hidden');
-    this.stopBtn.classList.remove('hidden');
-    this.stopBtn.disabled = false;
-    this.resetBtn.classList.add('hidden');
-    
-    // If Scheduled Mode, we recalculate targetTime every start? 
-    // No, targetTime is fixed when Set was clicked.
-    // Actually, for Countdown mode, if we PAUSE (Stop) and Start again, logic gets complex.
-    // The current requirement is simpler: Stop = Abort. Reset = Clear.
-    // So we don't need to support "Pause/Resume".
-    // BUT for countdown mode, "Set" creates a TargetTime relative to THAT moment.
-    // If I wait 5 mins to click Start, I lose 5 mins.
-    // FIX: For COUNTDOWN mode, we should recalculate TargetTime upon clicking START.
-    
-    if (this.currentMode === 'countdown') {
-        // Recalculate target based on inputs again to ensure full duration starts NOW
-        const hours = parseInt(this.examHoursInput.value) || 0;
-        const minutes = parseInt(this.examMinutesInput.value) || 0;
-        const durationMs = (hours * 3600 + minutes * 60) * 1000;
-        this.targetTime = new Date(Date.now() + durationMs);
-    } 
-    // For Scheduled mode, TargetTime is fixed (absolute time).
+    // Schedule Controls
+    this.els.sAdd.addEventListener('click', () => this.addExam());
+    this.els.sClear.addEventListener('click', () => this.clearSchedule());
+    this.els.sExport.addEventListener('click', () => this.exportCSV());
+    this.els.sImport.addEventListener('change', (e) => this.importCSV(e));
 
-    // Ticker Loop
-    this.tick(); // Run once immediately
-    this.countdownInterval = setInterval(() => this.tick(), 100); // 100ms for responsiveness
+    // Global
+    this.els.bgToggle.addEventListener('click', () => this.toggleBg());
+    this.els.soundToggle.addEventListener('click', () => this.toggleSound());
+    this.els.zoomIn.addEventListener('click', () => this.zoom(0.1));
+    this.els.zoomOut.addEventListener('click', () => this.zoom(-0.1));
   }
 
+  // --- Mode Switching ---
+  switchMode(mode) {
+    this.state.mode = mode;
+    
+    // Update Tabs
+    this.els.tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === mode));
+    
+    // Update Panels
+    if (mode === 'manual') {
+        this.els.panels.manual.classList.remove('hidden');
+        this.els.panels.schedule.classList.add('hidden');
+        this.els.status.classList.add('hidden');
+        this.els.countdown.textContent = "00:00:00";
+        this.els.infoCard.classList.add('hidden');
+    } else {
+        this.els.panels.manual.classList.add('hidden');
+        this.els.panels.schedule.classList.remove('hidden');
+        this.els.status.classList.remove('hidden');
+        this.checkSchedule(new Date()); // Immediate check
+    }
+  }
+
+  // --- Tick Loop ---
   tick() {
-      const now = new Date();
-      const remainingMs = this.targetTime - now;
+    const now = new Date();
+    
+    if (this.state.mode === 'manual') {
+        if (this.state.manualTarget) {
+            const diff = this.state.manualTarget - now;
+            if (diff <= 0) {
+                this.updateDisplay(0);
+                this.triggerAlarm("Manual Timer Finished");
+                this.stopManual();
+                alert("Time's Up!");
+            } else {
+                this.updateDisplay(diff);
+            }
+        }
+    } else {
+        this.checkSchedule(now);
+    }
+  }
 
-      if (remainingMs <= 0) {
-          this.updateCountdownDisplay(0);
-          this.finishExam();
-      } else {
-          this.updateCountdownDisplay(remainingMs);
+  // --- Schedule Logic ---
+  checkSchedule(now) {
+    const timeStr = this.formatTimeHHMM(now);
+    let activeExam = null;
+    let nextExam = null;
+
+    // Pre-process schedule dates
+    const todaySchedule = this.state.schedule.map(ex => ({
+        ...ex,
+        startDate: this.getDateFromStr(ex.start),
+        endDate: this.getDateFromStr(ex.end)
+    }));
+
+    // Find Active Exam
+    for (const ex of todaySchedule) {
+        if (now >= ex.startDate && now < ex.endDate) {
+            activeExam = ex;
+            break;
+        }
+    }
+
+    // Find Next Exam
+    if (!activeExam) {
+        nextExam = todaySchedule.find(ex => ex.startDate > now);
+    }
+
+    // State Transition Logic
+    if (activeExam) {
+        // Exam Just Started
+        if (!this.state.currentExam || this.state.currentExam.id !== activeExam.id) {
+            this.state.currentExam = activeExam;
+            this.triggerAlarm("Exam Started");
+            this.renderSchedule(); // Update highlights
+        }
+        
+        // Update UI
+        this.els.status.textContent = "EXAM IN PROGRESS";
+        this.els.status.className = "status-badge status-exam";
+        this.els.infoCard.classList.remove('hidden');
+        this.els.infoName.textContent = activeExam.name;
+        this.els.infoNote.textContent = activeExam.info;
+        
+        const diff = activeExam.endDate - now;
+        this.updateDisplay(diff);
+        
+    } else {
+        // Exam Just Ended
+        if (this.state.currentExam) {
+            this.triggerAlarm("Exam Ended");
+            this.state.currentExam = null;
+            this.renderSchedule();
+        }
+
+        // Break Mode
+        this.els.status.textContent = "STANDBY / BREAK";
+        this.els.status.className = "status-badge status-break";
+        this.els.infoCard.classList.add('hidden');
+        
+        if (nextExam) {
+             const diffToStart = nextExam.startDate - now;
+             this.els.countdown.textContent = "Next: " + this.formatDuration(diffToStart);
+        } else {
+             this.els.countdown.textContent = "No Exams";
+        }
+    }
+  }
+
+  // --- Manual Logic ---
+  startManual() {
+    const h = parseInt(this.els.mHours.value) || 0;
+    const m = parseInt(this.els.mMins.value) || 0;
+    if (h===0 && m===0) return alert("Set duration first");
+    
+    this.state.manualTarget = new Date(Date.now() + (h*3600 + m*60)*1000);
+    this.els.mStart.classList.add('hidden');
+    this.els.mStop.classList.remove('hidden');
+    this.els.mReset.disabled = true;
+    
+    this.els.infoCard.classList.remove('hidden');
+    this.els.infoName.textContent = this.els.mName.value || "Timer";
+    this.els.infoNote.textContent = this.els.mInfo.value || "";
+  }
+
+  stopManual() {
+    this.state.manualTarget = null;
+    this.els.mStart.classList.remove('hidden');
+    this.els.mStop.classList.add('hidden');
+    this.els.mReset.disabled = false;
+  }
+  
+  resetManual() {
+      this.updateDisplay(0);
+      this.els.infoCard.classList.add('hidden');
+      this.els.mHours.value = '';
+      this.els.mMins.value = '';
+      this.els.mName.value = '';
+  }
+
+  // --- CRUD & Helpers ---
+  addExam() {
+      const start = this.els.sStart.value;
+      const end = this.els.sEnd.value;
+      if(!start || !end) return alert("Time required");
+      if(start >= end) return alert("End time must be after start");
+
+      this.state.schedule.push({
+          id: Date.now().toString(),
+          start, end,
+          name: this.els.sName.value || "Subject",
+          info: ""
+      });
+      this.saveSchedule();
+      this.renderSchedule();
+      this.els.sName.value = '';
+  }
+
+  renderSchedule() {
+      this.els.sTable.innerHTML = '';
+      const nowStr = this.formatTimeHHMM(new Date());
+      
+      this.state.schedule.sort((a,b) => a.start.localeCompare(b.start));
+
+      this.state.schedule.forEach(ex => {
+          const row = document.createElement('tr');
+          if (nowStr >= ex.start && nowStr < ex.end) row.classList.add('active-row');
+          if (nowStr >= ex.end) row.classList.add('past-row');
+
+          row.innerHTML = `
+            <td>${ex.start} - ${ex.end}</td>
+            <td><strong>${ex.name}</strong></td>
+            <td><button class="btn-icon-del">×</button></td>
+          `;
+          row.querySelector('.btn-icon-del').addEventListener('click', () => {
+              this.state.schedule = this.state.schedule.filter(i => i.id !== ex.id);
+              this.saveSchedule();
+              this.renderSchedule();
+          });
+          this.els.sTable.appendChild(row);
+      });
+  }
+
+  saveSchedule() {
+      localStorage.setItem('examSchedule_v2', JSON.stringify(this.state.schedule));
+  }
+  
+  loadSchedule() {
+      const data = localStorage.getItem('examSchedule_v2');
+      if(data) this.state.schedule = JSON.parse(data);
+  }
+  
+  clearSchedule() {
+      if(confirm("Clear all?")) {
+          this.state.schedule = [];
+          this.saveSchedule();
+          this.renderSchedule();
       }
   }
 
-  updateCountdownDisplay(ms) {
-    // Ensure non-negative
-    ms = Math.max(0, ms);
-    this.countdownDisplay.textContent = this.formatTime(ms);
+  // --- CSV ---
+  exportCSV() {
+      const rows = [["Start", "End", "Subject", "Note"]];
+      this.state.schedule.forEach(ex => rows.push([ex.start, ex.end, `"${ex.name}"`, `"${ex.info}"`]));
+      const content = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+      const link = document.createElement("a");
+      link.setAttribute("href", encodeURI(content));
+      link.setAttribute("download", "schedule.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
   }
 
-  finishExam() {
-      clearInterval(this.countdownInterval);
-      if (this.soundEnabled) this.playAlarmSound();
-      
-      setTimeout(() => {
-          alert('Exam time is over!');
-          this.stopExam();
-      }, 100);
+  importCSV(e) {
+      const file = e.target.files[0];
+      if(!file) return;
+      const r = new FileReader();
+      r.onload = (evt) => {
+          const rows = evt.target.result.split('\n').slice(1); // skip header
+          const newSched = [];
+          rows.forEach((line, idx) => {
+              // Basic CSV parse
+              const cols = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g); 
+              if(cols && cols.length >= 2) {
+                  const clean = cols.map(c => c.replace(/^"|"$/g, '').trim());
+                  if(clean[0] && clean[1]) {
+                      newSched.push({
+                          id: Date.now() + idx,
+                          start: clean[0], end: clean[1],
+                          name: clean[2] || "Imported", info: clean[3] || ""
+                      });
+                  }
+              }
+          });
+          if(newSched.length) {
+              this.state.schedule = newSched;
+              this.saveSchedule();
+              this.renderSchedule();
+              alert(`Imported ${newSched.length} items`);
+          }
+      };
+      r.readAsText(file);
+      e.target.value = '';
   }
 
-  playAlarmSound() {
-    this.alarmSound.currentTime = 0;
-    this.alarmSound.play().catch(e => console.error(e));
+  // --- Utils ---
+  toggleBg() {
+      if(this.state.bgIndex > 1) document.body.classList.remove(`background-${this.state.bgIndex}`);
+      this.state.bgIndex = (this.state.bgIndex % 4) + 1; // 4 images max
+      if(this.state.bgIndex > 1) document.body.classList.add(`background-${this.state.bgIndex}`);
+  }
+  
+  toggleSound() {
+      this.state.soundEnabled = !this.state.soundEnabled;
+      this.els.soundToggle.textContent = this.state.soundEnabled ? "🔊 Sound On" : "🔈 Sound Off";
+      this.els.soundToggle.classList.toggle('active', this.state.soundEnabled);
+      // Try unlock on toggle
+      if(this.state.soundEnabled) this.unlockAudioContext();
   }
 
-  stopExam() {
-    clearInterval(this.countdownInterval);
-    this.examInProgress = false;
-    
-    this.stopBtn.classList.add('hidden');
-    this.resetBtn.classList.remove('hidden');
-    this.resetBtn.disabled = false;
+  zoom(amount) {
+      this.state.zoom = Math.max(0.5, Math.min(2, this.state.zoom + amount));
+      this.els.container.style.transform = `scale(${this.state.zoom})`;
   }
 
-  resetExam() {
-    clearInterval(this.countdownInterval);
-    
-    if (this.rightSection.classList.contains('exam-started')) {
-      this.rightSection.classList.remove('exam-started');
-      const examInfoDiv = this.rightSection.querySelector('.exam-info');
-      if (examInfoDiv) examInfoDiv.remove();
-    }
-    
-    // Clear Inputs
-    this.examHoursInput.value = '';
-    this.examMinutesInput.value = '';
-    this.examEndTimeInput.value = '';
-    this.examNameInput.value = '';
-    this.examInfoInput.value = '';
-    this.countdownDisplay.textContent = '00:00:00';
-    
-    // Reset Buttons
-    this.examHoursInput.disabled = false;
-    this.examMinutesInput.disabled = false;
-    this.examEndTimeInput.disabled = false;
-    
-    this.startBtn.disabled = true;
-    this.startBtn.classList.remove('hidden');
-    this.stopBtn.classList.add('hidden');
-    this.resetBtn.disabled = true;
-    this.setTimerBtn.disabled = false;
-    
-    this.modeRadios.forEach(r => r.disabled = false);
-    
-    this.timerIsSet = false;
-    this.examInProgress = false;
+  updateClock() {
+      const now = new Date();
+      this.els.clock.textContent = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit' });
+      this.els.date.textContent = now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   }
 
-  formatTime(milliseconds) {
-    const totalSeconds = Math.ceil(milliseconds / 1000); // Ceil helps avoids showing 00:00:00 when 900ms left
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    return [hours, minutes, seconds]
-      .map(num => num.toString().padStart(2, '0'))
-      .join(':');
+  formatTimeHHMM(d) { return d.toTimeString().substring(0, 5); }
+  getDateFromStr(s) {
+      const [h, m] = s.split(':').map(Number);
+      const d = new Date(); d.setHours(h, m, 0, 0); return d;
+  }
+  formatDuration(ms) {
+      if(ms < 0) ms = 0;
+      const s = Math.ceil(ms/1000);
+      const h = Math.floor(s/3600);
+      const m = Math.floor((s%3600)/60);
+      const sec = s%60;
+      return [h,m,sec].map(v => v.toString().padStart(2,'0')).join(':');
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const examTimer = new ExamTimer();
-});
+document.addEventListener('DOMContentLoaded', () => new ExamTimer());

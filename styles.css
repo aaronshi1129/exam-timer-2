@@ -1,277 +1,275 @@
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  --primary-color: #2196F3;
+  --accent-color: #FF4081;
+  --text-dark: #333;
+}
+
 body {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-image: url('https://app.aaronshi.cc/exam-timer/background-1.png');
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
   margin: 0;
   transition: background-image 0.5s ease;
-  overflow: hidden; /* 防止滿版時出現捲軸 */
+  overflow: hidden;
 }
 
-body.background-2 {
-  background-image: url('https://app.aaronshi.cc/exam-timer/background-2.png');
-}
+/* Background classes */
+body.background-2 { background-image: url('https://app.aaronshi.cc/exam-timer/background-2.png'); }
+body.background-3 { background-image: url('https://app.aaronshi.cc/exam-timer/background-3.png'); }
+body.background-4 { background-image: url('https://app.aaronshi.cc/exam-timer/background-4.png'); }
 
+/* Top Right Controls */
 .theme-switcher {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 100;
   display: flex;
-  flex-direction: column;
   gap: 10px;
 }
 
-#backgroundToggle, #soundToggle {
-  padding: 8px 15px;
+.icon-btn {
+  background: var(--glass-bg);
+  backdrop-filter: blur(4px);
+  border: var(--glass-border);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
   font-size: 0.9rem;
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-#backgroundToggle:hover, #soundToggle:hover {
-  background-color: rgba(255, 255, 255, 1);
-}
+.icon-btn:hover { background: rgba(255, 255, 255, 0.95); transform: translateY(-2px); }
+.icon-btn.active { background: #4CAF50; color: white; border-color: #4CAF50; }
 
-#soundToggle.active {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.zoom-controls {
-  display: flex;
-  gap: 5px;
-}
-
-#zoomIn, #zoomOut {
-  padding: 6px 10px;
-  font-size: 0.8rem;
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  flex: 1;
-}
-
-#zoomIn:hover, #zoomOut:hover {
-  background-color: rgba(255, 255, 255, 1);
-}
-
-/* --- Layout Changes: Transparent Full Screen --- */
+/* Main Container - Split View */
 .exam-timer-container {
   display: flex;
-  width: 95vw; /* 幾乎佔滿寬度 */
-  height: 80vh; /* 佔據主要高度 */
-  /* Remove background and shadow */
-  background-color: transparent;
-  box-shadow: none;
-  border-radius: 0;
-  padding: 0;
-  transition: transform 0.3s ease;
-  justify-content: space-between; /* 左右分開 */
-  align-items: center;
+  width: 90vw;
+  height: 85vh;
+  background: rgba(255, 255, 255, 0.1); /* Very transparent */
+  backdrop-filter: blur(10px); /* The main blur */
+  border-radius: 24px;
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
 }
 
+/* LEFT SIDE: Clock & Status */
 .left-section {
   flex: 1;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  /* Add separation line visual if needed, or remove border for cleaner look */
-  border-right: 1px solid rgba(255, 255, 255, 0.3); 
-  padding-right: 40px;
-  height: 60%; /* Limit height of border */
+  border-right: 1px solid rgba(255,255,255,0.3);
+  padding: 20px;
+  background: rgba(255,255,255,0.2);
 }
 
 .digital-clock {
-  font-size: 4rem; /* Slightly larger */
-  color: #333;
-  font-weight: bold;
-  text-shadow: 0 2px 4px rgba(255,255,255, 0.8);
-}
-
-.digital-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  font-size: 6rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+  line-height: 1;
+  margin-bottom: 10px;
 }
 
 .digital-date {
   font-size: 1.5rem;
-  color: #444;
-  margin-top: 10px;
-  text-shadow: 0 1px 2px rgba(255,255,255, 0.8);
+  color: #555;
+  margin-bottom: 30px;
 }
 
+.status-badge {
+  padding: 10px 25px;
+  border-radius: 50px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  background: rgba(0,0,0,0.1);
+  color: #555;
+  transition: all 0.3s ease;
+  letter-spacing: 2px;
+}
+
+.status-exam { background-color: #f44336; color: white; box-shadow: 0 0 15px rgba(244, 67, 54, 0.5); animation: pulse 2s infinite; }
+.status-break { background-color: #4CAF50; color: white; }
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* RIGHT SIDE: Controls & Schedule */
 .right-section {
-  flex: 1.5; /* Give right section more space */
+  flex: 1.2;
   display: flex;
   flex-direction: column;
-  padding-left: 40px;
-  justify-content: center;
-  align-items: center;
+  padding: 30px;
+  overflow-y: auto;
+  position: relative;
 }
 
-.countdown-timer {
+/* Tab Navigation */
+.tabs {
+  display: flex;
+  background: rgba(0,0,0,0.05);
+  padding: 5px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  align-self: center;
+}
+
+.tab-btn {
+  padding: 10px 30px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 8px;
+  font-weight: bold;
+  color: #666;
+  transition: all 0.3s;
+  box-shadow: none;
+}
+
+.tab-btn.active {
+  background: white;
+  color: var(--primary-color);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Common Panel Styles */
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.hidden { display: none !important; }
+
+/* Countdown Display */
+.countdown-display {
+  font-size: 5rem;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: var(--text-dark);
+  margin: 20px 0;
+  text-shadow: 2px 2px 0px rgba(255,255,255,0.8);
+}
+
+/* Info Display (Current Exam) */
+.exam-info-card {
+  background: rgba(255,255,255,0.6);
+  padding: 15px 25px;
+  border-radius: 12px;
   text-align: center;
   margin-bottom: 20px;
-  width: 100%;
-  max-width: 600px;
+  width: 80%;
+  border-left: 5px solid var(--accent-color);
 }
+.exam-title { font-size: 2rem; font-weight: bold; color: #333; }
+.exam-note { font-size: 1.2rem; color: #666; margin-top: 5px; }
 
-.countdown-display {
-  font-size: 5rem; /* Make the main timer huge */
-  color: #222;
-  margin-bottom: 25px;
-  font-family: 'Courier New', Courier, monospace; /* Monospace prevents jitter */
-  font-weight: bold;
-  text-shadow: 2px 2px 0px rgba(255,255,255, 1);
-}
-
-/* Mode Switcher */
-.mode-selector {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 15px;
-  background-color: rgba(255,255,255,0.6);
-  padding: 10px;
-  border-radius: 20px;
-}
-
-.mode-selector label {
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-/* Controls */
-.countdown-controls,
-.proctor-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  width: 100%;
-  max-width: 400px; /* Keep inputs from getting too wide */
-  margin: 0 auto;
-}
-
-.input-group-row {
+/* Inputs & Buttons */
+.input-row {
   display: flex;
   gap: 10px;
   justify-content: center;
+  width: 100%;
+  margin-bottom: 15px;
 }
 
 input {
   padding: 12px;
-  font-size: 1.1rem;
-  border: 1px solid #ccc; /* Slightly darker border */
+  border: 1px solid rgba(0,0,0,0.1);
   border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  text-align: center;
-  flex: 1;
+  background: rgba(255,255,255,0.8);
+  font-size: 1rem;
+  outline: none;
+  transition: 0.3s;
 }
+input:focus { background: white; border-color: var(--primary-color); }
 
-input:invalid {
-  border-color: #f44336;
-  background-color: rgba(244, 67, 54, 0.1);
-}
-
-.exam-controls {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-  gap: 10px;
-}
-
-button {
-  padding: 12px 20px;
-  font-size: 1.1rem;
+button.action-btn {
+  padding: 12px 25px;
   border: none;
   border-radius: 8px;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  flex: 1;
+  transition: 0.2s;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
+button.action-btn:active { transform: scale(0.98); }
 
-button:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
+.btn-start { background: var(--primary-color); }
+.btn-stop { background: #f44336; }
+.btn-reset { background: #FFC107; color: black; }
+.btn-add { background: #4CAF50; width: 80px; }
 
-#setTimerBtn { background-color: #4CAF50; color: white; }
-#setTimerBtn:hover { background-color: #45a049; }
-
-#startBtn { background-color: #2196F3; color: white; }
-#startBtn:hover { background-color: #1976D2; }
-
-#stopBtn { background-color: #f44336; color: white; }
-#stopBtn:hover { background-color: #d32f2f; }
-
-#resetBtn { background-color: #FFC107; color: black; }
-#resetBtn:hover { background-color: #FFA000; }
-
-.disabled { opacity: 0.5; pointer-events: none; }
-.hidden { display: none !important; }
-
-/* Exam Start Styles */
-.exam-started .countdown-controls,
-.exam-started .mode-selector {
-  display: none;
-}
-
-.exam-started .countdown-display {
-  font-size: 12rem; /* Massive when started */
-  margin-bottom: 20px;
-  margin-top: -20px;
-}
-
-.exam-started .proctor-inputs input {
-  display: none;
-}
-
-.exam-started .exam-info {
-  text-align: center;
-  margin-bottom: 30px;
-  background-color: rgba(255,255,255,0.7);
-  padding: 15px;
-  border-radius: 10px;
-  display: inline-block;
-  min-width: 300px;
-}
-
-.exam-started .exam-info div:first-child {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #000;
-}
-.exam-started .exam-info div:last-child {
-    font-size: 1.8rem;
-    color: #333;
-    margin-top: 5px;
-}
-
-.author-info {
-  position: fixed;
-  bottom: 10px;
-  left: 0;
+/* Table Styles */
+.schedule-container {
   width: 100%;
-  text-align: center;
-  font-size: 0.8rem;
-  color: #333;
-  text-shadow: 0 0 2px white;
+  background: rgba(255,255,255,0.5);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.table-wrapper {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+table { width: 100%; border-collapse: collapse; }
+th { background: rgba(0,0,0,0.05); padding: 12px; text-align: left; position: sticky; top: 0; backdrop-filter: blur(5px); }
+td { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: middle; }
+
+tr.active-row { background: rgba(76, 175, 80, 0.2); font-weight: bold; border-left: 4px solid #4CAF50; }
+tr.past-row { opacity: 0.5; text-decoration: line-through; }
+
+.btn-icon-del {
+  background: none; border: none; color: #f44336; cursor: pointer; font-size: 1.2rem;
+  box-shadow: none; padding: 0 5px;
+}
+.btn-icon-del:hover { background: rgba(244, 67, 54, 0.1); border-radius: 4px; }
+
+/* CSV Controls */
+.csv-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  width: 100%;
+}
+.btn-outline {
+  flex: 1; padding: 8px; border: 1px solid #666; background: transparent; 
+  border-radius: 6px; cursor: pointer; color: #555; text-align: center; font-size: 0.9rem;
+}
+.btn-outline:hover { background: rgba(0,0,0,0.05); color: black; }
+.btn-clear { border-color: #f44336; color: #f44336; }
+.btn-clear:hover { background: #f44336; color: white; }
+
+input[type="file"] { display: none; }
+.author-info {
+  position: fixed; bottom: 10px; left: 0; width: 100%; text-align: center;
+  font-size: 0.8rem; color: rgba(0,0,0,0.5); pointer-events: none;
 }

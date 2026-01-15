@@ -1,72 +1,95 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Exam Timer by Aaron Shi</title>
+  <title>Exam Timer Pro</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="https://alittlemoreenglish.weebly.com/uploads/2/6/6/3/26638990/favicon-32x32_orig.png">
 </head>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z6V4ZXXZXS"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-Z6V4ZXXZXS');
-</script>
 <body>
   <div class="theme-switcher">
-    <button id="backgroundToggle">Switch Background</button>
-    <button id="soundToggle">Sound Effect: Off</button>
-    <div class="zoom-controls">
-      <button id="zoomIn">Zoom In</button>
-      <button id="zoomOut">Zoom Out</button>
-    </div>
+    <button id="backgroundToggle" class="icon-btn">🖼️ BG</button>
+    <button id="soundToggle" class="icon-btn">🔈 Sound Off</button>
+    <button id="zoomIn" class="icon-btn">🔍+</button>
+    <button id="zoomOut" class="icon-btn">🔍-</button>
   </div>
   
   <div class="exam-timer-container">
     <div class="left-section">
-      <div class="digital-info">
-        <div id="digitalClock" class="digital-clock">00:00:00</div>
-        <div id="digitalDate" class="digital-date">Date</div>
-      </div>
+      <div id="digitalClock" class="digital-clock">00:00</div>
+      <div id="digitalDate" class="digital-date">Loading...</div>
+      <div id="statusDisplay" class="status-badge status-break">Standby</div>
     </div>
     
     <div class="right-section">
-      <div class="countdown-timer">
-        <div id="countdownDisplay" class="countdown-display">00:00:00</div>
-        
-        <div class="mode-selector">
-            <label><input type="radio" name="timerMode" value="countdown" checked> Countdown Mode</label>
-            <label><input type="radio" name="timerMode" value="scheduled"> Scheduled Mode</label>
-        </div>
-
-        <div class="countdown-controls">
-          <div id="countdownInputs" class="input-group-row">
-            <input type="number" id="examHours" placeholder="Hours" min="0" step="1">
-            <input type="number" id="examMinutesInput" placeholder="Minutes" min="0" max="59" step="1">
-          </div>
-          
-          <div id="scheduledInputs" class="input-group-row hidden">
-             <input type="time" id="examEndTimeInput" placeholder="End Time">
-          </div>
-
-          <button id="setTimerBtn">Set Timer</button>
-        </div>
-      </div>
       
-      <div class="proctor-inputs">
-        <input type="text" id="examNameInput" placeholder="Exam Name">
-        <input type="text" id="examInfoInput" placeholder="Exam Info">
-        <div class="exam-controls">
-          <button id="startBtn">Start Exam</button>
-          <button id="stopBtn">Stop Exam</button>
-          <button id="resetBtn">Reset</button>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="manual">Manual Timer</button>
+        <button class="tab-btn" data-tab="schedule">Auto Schedule</button>
+      </div>
+
+      <div id="activeExamInfo" class="exam-info-card hidden">
+        <div id="activeNameDisplay" class="exam-title">Subject</div>
+        <div id="activeInfoDisplay" class="exam-note">Details</div>
+      </div>
+
+      <div id="countdownDisplay" class="countdown-display">00:00:00</div>
+
+      <div id="manualPanel" class="control-panel">
+        <div class="input-row">
+          <input type="number" id="manualHours" placeholder="Hrs" min="0" style="width: 80px;">
+          <input type="number" id="manualMinutes" placeholder="Mins" min="0" max="59" style="width: 80px;">
+        </div>
+        <div class="input-row">
+           <input type="text" id="manualExamName" placeholder="Subject Name" style="flex:1">
+        </div>
+        <div class="input-row">
+           <input type="text" id="manualExamInfo" placeholder="Description / Note" style="flex:1">
+        </div>
+        <div class="input-row">
+          <button id="manualStartBtn" class="action-btn btn-start">Start</button>
+          <button id="manualStopBtn" class="action-btn btn-stop hidden">Stop</button>
+          <button id="manualResetBtn" class="action-btn btn-reset" disabled>Reset</button>
         </div>
       </div>
+
+      <div id="schedulePanel" class="control-panel hidden">
+        
+        <div class="input-row" style="background: rgba(255,255,255,0.4); padding: 10px; border-radius: 8px;">
+            <input type="time" id="newExamStart" required style="width: auto;">
+            <span style="align-self:center; color:#555;">to</span>
+            <input type="time" id="newExamEnd" required style="width: auto;">
+            <input type="text" id="newExamName" placeholder="Subject" style="flex:1;">
+            <button id="addExamBtn" class="action-btn btn-add">+</button>
+        </div>
+
+        <div class="schedule-container">
+            <div class="table-wrapper">
+                <table id="scheduleTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%">Time</th>
+                            <th style="width: 60%">Subject</th>
+                            <th style="width: 10%"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="csv-controls">
+            <button id="clearScheduleBtn" class="btn-outline btn-clear">Clear All</button>
+            <button id="exportCsvBtn" class="btn-outline">Export CSV</button>
+            <label for="importCsvInput" class="btn-outline" style="margin-bottom:0;">Import CSV</label>
+            <input type="file" id="importCsvInput" accept=".csv">
+        </div>
+      </div>
+
     </div>
   </div>
   
-  <div class="author-info"><a href="https://www.aaronshi.cc" target="_blank" rel="noopener noreferrer">Created by Aaron Shi. v3.250421<img src="https://alittlemoreenglish.weebly.com/uploads/2/6/6/3/26638990/favicon-32x32_orig.png" alt="Aaron Shi" width="15" height="15"></a></div>
+  <div class="author-info">Created by Aaron Shi. v5.0 Glass UI</div>
   <script type="module" src="timer.js"></script>
 </body>
 </html>
